@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+data/monitor.db
+data/manual/trades*.csv
+.venv/
+.vercel/
