@@ -11,10 +11,16 @@ W_LEVEL, W_CHANGE, W_PENSION = 0.50, 0.20, 0.30
 LEVEL_CAP_BPS = 300.0   # spread at/above this scores 100
 CHANGE_CAP_BPS = 50.0   # +/- this change over the window maps to 100 / 0
 CHANGE_WINDOW = 20      # observations
+SERIES_BUCKET = "7-12y"  # fixed maturity bucket so the series is not distorted by maturity mix
 
 
-def issuer_series(metrics: pd.DataFrame) -> pd.DataFrame:
-    """Median trade spread per issuer/date with 20-obs rolling mean and 60-obs z-score."""
+def issuer_series(metrics: pd.DataFrame, bucket: str | None = None) -> pd.DataFrame:
+    """Median spread per issuer/date (tax-exempt only; optional maturity bucket), 20-obs rolling
+    mean and 60-obs z-score."""
+    if bucket is not None and not metrics.empty:
+        metrics = metrics[metrics["bucket"] == bucket]
+    if "tax_exempt" in metrics.columns:  # nominal spreads of taxable and exempt bonds are not comparable
+        metrics = metrics[metrics["tax_exempt"] == 1]
     if metrics.empty:
         return pd.DataFrame(columns=["issuer_key", "date", "median_spread_bps", "n_trades",
                                      "roll_mean_20", "zscore_60"])

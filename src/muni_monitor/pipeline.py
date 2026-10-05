@@ -44,9 +44,12 @@ def compute_metrics(trades: pd.DataFrame, sec: pd.DataFrame, curve: pd.DataFrame
         return pd.DataFrame()
     curves = {d: g.sort_values("tenor_years") for d, g in curve.groupby("date")}
     dates = sorted(curves)
-    secs = sec.set_index("cusip")
+    # Bonds quoted to a call date (is_callable=1) are not maturity-comparable to Treasuries: excluded.
+    secs = sec[sec.is_callable == 0].set_index("cusip")
     rows = []
     for t in use.itertuples():
+        if t.cusip not in secs.index:
+            continue
         s = secs.loc[t.cusip]
         td = date.fromisoformat(t.trade_date)
         mat = date.fromisoformat(s.maturity_date)
@@ -73,7 +76,7 @@ def compute_metrics(trades: pd.DataFrame, sec: pd.DataFrame, curve: pd.DataFrame
             "treasury_yield_pct": ty, "spread_bps": an.spread_bps(ytm, ty / 100),
             "muni_treasury_ratio": an.muni_treasury_ratio(ytm, ty / 100),
             "modified_duration": rm["modified"], "convexity": rm["convexity"], "dv01": rm["dv01"],
-            "bucket": bucket(yrs), "tax_exempt": int(s.tax_exempt), "curve_date": cdate})
+            "bucket": bucket(yrs), "tax_exempt": int(s.tax_exempt), "il_exempt": int(s.il_exempt), "curve_date": cdate})
     return pd.DataFrame(rows)
 
 
@@ -122,18 +125,20 @@ def run(offline: bool = False, manual: Path | None = None, db_path: Path | None 
         is_odd_lot=[], is_interdealer=[], is_impossible_yield=[], is_outlier=[])
     dq.append(quality.check_impossible_yields(flagged))
     dq += quality.check_outliers(flagged)
-    dq.append(quality.check_stale(flagged))
+    dq.append(quality.check_stale(flagged[flagged.trade_type != "NEW_ISSUE"] if len(flagged) else flagged))
     replace_table(con, "trades", flagged)
 
     # Analytics
     fl = flagged.rename(columns={"yield": "yield_"})
     metrics = compute_metrics(fl, sec, curve) if len(fl) else pd.DataFrame()
+    callable_cusips = set(sec.loc[sec.is_callable == 1, "cusip"])
     n_eligible = int(((flagged.is_odd_lot == 0) & (flagged.is_outlier == 0)
-                      & (flagged.is_impossible_yield == 0)).sum()) if len(flagged) else 0
+                      & (flagged.is_impossible_yield == 0)
+                      & ~flagged.cusip.isin(callable_cusips)).sum()) if len(flagged) else 0
     dq.append(quality.check_date_alignment(metrics, n_eligible))
     replace_table(con, "trade_metrics", metrics)
 
-    series = stress.issuer_series(metrics)
+    series = stress.issuer_series(metrics, stress.SERIES_BUCKET)
     replace_table(con, "issuer_spread_series", series)
     scores = stress.latest_scores(series, pen) if len(series) else pd.DataFrame()
     replace_table(con, "stress_scores", scores)

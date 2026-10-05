@@ -66,11 +66,14 @@ with t2:
             st.plotly_chart(px.line(tr, x="trade_date", y="price", markers=True), use_container_width=True)
             st.subheader("Tax-equivalent yield")
             fed = st.selectbox("Federal bracket", an.FED_BRACKETS, index=4, format_func=lambda x: f"{x:.0%}")
-            exempt = bool(sec.set_index("cusip").loc[cusip, "tax_exempt"])
-            if exempt:
-                il = st.checkbox("Illinois resident (state-exempt)", True)
+            row = sec.set_index("cusip").loc[cusip]
+            if bool(row.tax_exempt):
+                # Illinois tax applies only if the bond is exempt from Illinois income tax
+                # (il_exempt=1). Illinois GO and CPS official statements say they are NOT.
+                st_rate = an.IL_INCOME_TAX if bool(row.il_exempt) else 0.0
                 y = last.yield_pct / 100
-                st.write(f"TEY: **{an.tax_equivalent_yield(y, fed, an.IL_INCOME_TAX if il else 0) * 100:.2f}%**")
+                st.write(f"TEY: **{an.tax_equivalent_yield(y, fed, st_rate) * 100:.2f}%** "
+                         f"({'federal + Illinois' if st_rate else 'federal only; interest is taxable by Illinois'})")
             else:
                 st.write("This bond is flagged taxable; tax-equivalent yield does not apply.")
 with t3:

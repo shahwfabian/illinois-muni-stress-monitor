@@ -75,7 +75,7 @@ def test_settle_and_bucket():
 def test_compute_metrics_end_to_end_synthetic():
     curve = treasury.parse_curve_csv('Date,"1 Yr","10 Yr"\n01/02/2025,4.0,5.0\n')
     sec = pd.DataFrame({"cusip": ["AAA"], "issuer_key": ["IL_GO"], "coupon": [0.05],
-                        "maturity_date": ["2030-01-03"], "tax_exempt": [1]})
+                        "maturity_date": ["2030-01-03"], "tax_exempt": [1], "il_exempt": [0], "is_callable": [0]})
     tr = pd.DataFrame({"trade_id": ["1"], "cusip": ["AAA"], "trade_date": ["2025-01-02"], "yield_": [5.0],
                        "is_odd_lot": [0], "is_outlier": [0], "is_impossible_yield": [0]})
     m = pipeline.compute_metrics(tr, sec, curve)
@@ -104,3 +104,25 @@ def test_issuer_series_zscore():
                       "spread_bps": np.r_[np.full(29, 100.0) + np.arange(29) % 3, 300.0]})
     s = stress.issuer_series(m)
     assert s.zscore_60.iloc[-1] > 3 and len(s) == 30
+
+
+def test_new_issue_trade_type_accepted():
+    n = etl.normalize_trades(_raw(**{"Trade Type": ["NEW_ISSUE"]}))
+    assert n.loc[0, "trade_type"] == "NEW_ISSUE"
+
+
+def test_series_excludes_taxable_and_filters_bucket():
+    m = pd.DataFrame({"issuer_key": "IL_GO", "trade_date": ["2024-01-01"] * 3,
+                      "spread_bps": [-40.0, 80.0, 10.0], "tax_exempt": [1, 0, 1],
+                      "bucket": ["7-12y", "7-12y", "0-3y"]})
+    s = stress.issuer_series(m, "7-12y")
+    assert len(s) == 1 and s.median_spread_bps.iloc[0] == -40.0 and s.n_trades.iloc[0] == 1
+
+
+def test_callable_bonds_excluded_from_metrics():
+    curve = treasury.parse_curve_csv('Date,"1 Yr","10 Yr"\n01/02/2025,4.0,5.0\n')
+    sec = pd.DataFrame({"cusip": ["AAA"], "issuer_key": ["IL_GO"], "coupon": [0.05],
+                        "maturity_date": ["2030-01-03"], "tax_exempt": [1], "il_exempt": [0], "is_callable": [1]})
+    tr = pd.DataFrame({"trade_id": ["1"], "cusip": ["AAA"], "trade_date": ["2025-01-02"], "yield_": [5.0],
+                       "is_odd_lot": [0], "is_outlier": [0], "is_impossible_yield": [0]})
+    assert pipeline.compute_metrics(tr, sec, curve).empty

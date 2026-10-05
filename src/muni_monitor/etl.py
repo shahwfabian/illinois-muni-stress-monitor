@@ -26,7 +26,7 @@ TRADE_REQUIRED = ["cusip", "trade_date", "price", "yield", "par_amount", "trade_
 TRADE_TYPES = {
     "sale to customer": "SALE_TO_CUSTOMER", "customer bought": "SALE_TO_CUSTOMER",
     "purchase from customer": "PURCHASE_FROM_CUSTOMER", "customer sold": "PURCHASE_FROM_CUSTOMER",
-    "inter-dealer": "INTER_DEALER", "interdealer": "INTER_DEALER", "inter dealer": "INTER_DEALER",
+    "new_issue": "NEW_ISSUE", "inter-dealer": "INTER_DEALER", "interdealer": "INTER_DEALER", "inter dealer": "INTER_DEALER",
 }
 
 
@@ -79,7 +79,7 @@ def flag_trades(df: pd.DataFrame, impossible_lo: float = 0.0, impossible_hi: flo
 
 
 def load_securities(path: Path = MANUAL / "securities.csv") -> pd.DataFrame:
-    cols = ["cusip", "issuer_key", "description", "coupon", "maturity_date", "tax_exempt",
+    cols = ["cusip", "issuer_key", "description", "coupon", "maturity_date", "tax_exempt", "il_exempt",
             "is_callable", "call_date", "source_doc_url"]
     if not path.exists():
         return pd.DataFrame(columns=cols)
@@ -92,14 +92,14 @@ def load_securities(path: Path = MANUAL / "securities.csv") -> pd.DataFrame:
     # coupons may be given in percent (5.0) or decimal (0.05); anything >1 is percent
     df["coupon"] = df["coupon"].where(df["coupon"] <= 1, df["coupon"] / 100)
     df["maturity_date"] = pd.to_datetime(df["maturity_date"], errors="coerce").dt.strftime("%Y-%m-%d")
-    for c in ("tax_exempt", "is_callable"):
+    for c in ("tax_exempt", "il_exempt", "is_callable"):
         df[c] = df[c].str.lower().isin(["1", "true", "yes", "y"]).astype(int)
     return df[cols]
 
 
 def load_trades_files(folder: Path = MANUAL) -> pd.DataFrame:
     frames = []
-    for p in sorted(folder.glob("trades*.csv")):
+    for p in sorted([*folder.glob("trades*.csv"), *folder.glob("new_issue*.csv")]):
         frames.append(normalize_trades(pd.read_csv(p, dtype=str)))
     if not frames:
         return pd.DataFrame(columns=["cusip", "trade_date", "trade_time", "price", "yield", "par_amount", "trade_type"])

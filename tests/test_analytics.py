@@ -85,3 +85,9 @@ def test_spread_ratio_tey():
 def test_maturity_before_settle_raises():
     with pytest.raises(ValueError):
         an.price_from_yield(M, S, 0.05, 0.05)
+
+
+def test_illinois_tax_only_when_applicable():
+    # default (state=0): Illinois tax is NOT layered on, matching IL GO / CPS official statements
+    assert an.tax_equivalent_yield(0.04, 0.37) == pytest.approx(0.04 / 0.63)
+    assert an.tax_equivalent_yield(0.04, 0.37, an.IL_INCOME_TAX) > an.tax_equivalent_yield(0.04, 0.37)

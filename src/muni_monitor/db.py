@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS issuers(
 CREATE TABLE IF NOT EXISTS securities(
   cusip TEXT PRIMARY KEY, issuer_key TEXT NOT NULL REFERENCES issuers(issuer_key),
   description TEXT, coupon REAL NOT NULL, maturity_date TEXT NOT NULL,
-  tax_exempt INTEGER NOT NULL, is_callable INTEGER DEFAULT 0, call_date TEXT,
+  tax_exempt INTEGER NOT NULL, il_exempt INTEGER DEFAULT 0, is_callable INTEGER DEFAULT 0, call_date TEXT,
   source_doc_url TEXT);
 CREATE TABLE IF NOT EXISTS trades(
   trade_id TEXT PRIMARY KEY, cusip TEXT NOT NULL REFERENCES securities(cusip),
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS trade_metrics(
   trade_id TEXT PRIMARY KEY, cusip TEXT, issuer_key TEXT, trade_date TEXT,
   years_to_maturity REAL, yield_pct REAL, treasury_yield_pct REAL, spread_bps REAL,
   muni_treasury_ratio REAL, modified_duration REAL, convexity REAL, dv01 REAL,
-  bucket TEXT, tax_exempt INTEGER, curve_date TEXT);
+  bucket TEXT, tax_exempt INTEGER, il_exempt INTEGER, curve_date TEXT);
 CREATE TABLE IF NOT EXISTS issuer_spread_series(
   issuer_key TEXT, date TEXT, median_spread_bps REAL, n_trades INTEGER,
   roll_mean_20 REAL, zscore_60 REAL, PRIMARY KEY(issuer_key, date));
