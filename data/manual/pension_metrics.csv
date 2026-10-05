@@ -1,0 +1,8 @@
+issuer_key,plan,fiscal_year,funded_ratio_pct,unfunded_liability,employer_contribution,source_url
+IL_GO,SERS,2024,45.8,,,https://publicplansdata.org/quick-facts/by-state/state/?state=IL
+IL_GO,TRS,2024,45.8,,,https://publicplansdata.org/quick-facts/by-state/state/?state=IL
+IL_GO,SURS,2024,46.0,,,https://publicplansdata.org/quick-facts/by-state/state/?state=IL
+CHI_GO,MEABF,2024,25.8,,,https://publicplansdata.org/quick-facts/by-state/state/?state=IL
+CHI_GO,FABF,2024,24.4,,,https://publicplansdata.org/quick-facts/by-state/state/?state=IL
+CHI_GO,LABF,2024,42.6,,,https://publicplansdata.org/quick-facts/by-state/state/?state=IL
+CPS,CTPF,2024,48.1,,,https://publicplansdata.org/quick-facts/by-state/state/?state=IL
