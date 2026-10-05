@@ -5,3 +5,4 @@ data/monitor.db
 data/manual/trades*.csv
 .venv/
 .vercel/
+data/raw/os/
