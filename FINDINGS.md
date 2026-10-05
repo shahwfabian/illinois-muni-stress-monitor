@@ -21,6 +21,6 @@ All figures come from the pipeline database built from issuer Official Statement
 * Composite stress scores (0 to 100): CPS 30, Illinois 20; the change component is unavailable (too few observations), so those scores are reweighted.
 
 ## Interpretation and caveats
-* Pension funded ratio does **not** explain the ordering across these issuers: Illinois and CTPF funded ratios are similar (46 to 48%), yet CPS's muni/Treasury ratio is roughly 30 percentage points higher. The market is pricing other things (security structure, rating, budget position). With two issuers and four pricing events this cannot be tested statistically; the result is **suggestive, not conclusive**.
+* Pension funded ratio does **not** explain the ordering across these issuers: Illinois and CTPF funded ratios are similar (46 to 48%), yet CPS's muni/Treasury ratio is roughly 30 percentage points higher. Something other than pension funding must explain the gap; this project does not test what (ratings, security structure and budget position are candidates). With two issuers and four pricing events this cannot be tested statistically; the result is **suggestive, not conclusive**.
 * Four pricing dates do not make a time series. Rolling averages and z-scores need secondary-market trades (EMMA CSVs, which must be downloaded manually; see DATA_SOURCES.md).
 * New-issue yields include underwriter concession and reflect a single day's market, and different maturities were sold in each deal. This is not the MMD curve.
