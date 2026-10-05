@@ -83,7 +83,7 @@ th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--bd)}th{color
 const D=__DATA__;
 const L={margin:{t:10,r:10,b:40,l:50},paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',font:{color:getComputedStyle(document.body).color},legend:{orientation:'h'}};
 const empty=(id,t)=>document.getElementById(id).innerHTML='<p class="sub">'+t+'</p>';
-if(!D.n_trades){document.getElementById('banner').innerHTML='<div class="card banner"><b>No municipal trades loaded yet.</b> EMMA prohibits automated access, so trade CSVs must be downloaded manually into <code>data/manual/</code> (see DATA_SOURCES.md), then run the pipeline. Treasury benchmark and data-quality panels below are live from the pipeline.</div>'}
+if(D.n_trades){document.getElementById('banner').innerHTML='<div class="card banner"><b>Primary-market data.</b> Spreads use new-issue reoffering yields from issuer Official Statements ('+D.n_trades+' bonds), not secondary trades. Tax-exempt, 7-12y bucket. EMMA trade CSVs can be added manually (see DATA_SOURCES.md).</div>'}else{document.getElementById('banner').innerHTML='<div class="card banner"><b>No municipal trades loaded yet.</b> EMMA prohibits automated access, so trade CSVs must be downloaded manually into <code>data/manual/</code> (see DATA_SOURCES.md), then run the pipeline. Treasury benchmark and data-quality panels below are live from the pipeline.</div>'}
 const names=Object.fromEntries(D.issuers.map(i=>[i.issuer_key,i.name]));
 if(D.stress.length){
  let h='<table><tr><th>Issuer</th><th>Spread (bp)</th><th>20-obs change (bp)</th><th>Funded ratio</th><th>Stress score</th><th>Notes</th></tr>';
