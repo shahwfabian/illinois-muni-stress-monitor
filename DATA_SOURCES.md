@@ -22,7 +22,9 @@ Then run `python -m muni_monitor.pipeline`.
 
 ## Gaps (stated honestly)
 
-* **No CUSIPs are included.** I did not source any from Official Statements in this run and will not invent them. The sample of 5 to 10 bonds per issuer has to be assembled from the OS documents.
-* **No muni trades or pension figures are loaded.** Every muni and pension panel is therefore an explicit empty state, and FINDINGS.md says so.
+* **Loaded from official documents (October 2026 update):** 96 CUSIPs from five issuer-published Official Statements (State of Illinois Capital Markets Office; CPS Finance), parsed by `scripts/parse_os.py` with reoffering yields as `NEW_ISSUE` records; FY2024 funded ratios for seven plans from Public Plans Data.
+* **City of Chicago GO: no Official Statement could be retrieved**, so there are no Chicago bonds. Chicago Police Pension is not shown on the Public Plans Data page and is omitted.
+* **No secondary-market trades are loaded** (EMMA blocks automation); spreads are primary-market only.
+* Pension data is a single fiscal year; unfunded liability and contribution columns are blank.
 * EMMA's exact export headers were not verified (blocked to automation); the alias map is a best effort and errors out on mismatch.
 * Callable bonds: EMMA's yield may be yield-to-call or to-worst, which is not comparable to a maturity-matched Treasury. Record `is_callable` and `call_date`; see METHODOLOGY.md.
