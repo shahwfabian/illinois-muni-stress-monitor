@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import logging
 from datetime import date, datetime, timezone
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -80,11 +81,12 @@ def replace_table(con, name: str, df: pd.DataFrame) -> None:
     con.execute(f"DELETE FROM {name}")
     if len(df):
         cols = [r[1] for r in con.execute(f"PRAGMA table_info({name})")]
-        df[cols].to_sql(name, con, if_exists="append", index=False)
+        df.reindex(columns=cols).to_sql(name, con, if_exists="append", index=False)
 
 
-def run(offline: bool = False) -> dict:
-    con = connect()
+def run(offline: bool = False, manual: Path | None = None, db_path: Path | None = None) -> dict:
+    manual = manual or etl.MANUAL
+    con = connect(db_path) if db_path else connect()
     run_ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
     dq: list[dict] = []
 
@@ -95,17 +97,17 @@ def run(offline: bool = False) -> dict:
     dq += quality.check_treasury(curve, treasury.fred_cross_check(curve, offline))
 
     # Reference data (manual CSVs)
-    sec = etl.load_securities()
+    sec = etl.load_securities(manual / "securities.csv")
     replace_table(con, "securities", sec)
-    pen = etl.load_optional(etl.MANUAL / "pension_metrics.csv",
+    pen = etl.load_optional(manual / "pension_metrics.csv",
                             ["issuer_key", "plan", "fiscal_year", "funded_ratio_pct",
                              "unfunded_liability", "employer_contribution", "source_url"])
     replace_table(con, "pension_metrics", pen)
-    ev = etl.load_optional(etl.MANUAL / "events.csv", ["event_date", "issuer_key", "label", "source"])
+    ev = etl.load_optional(manual / "events.csv", ["event_date", "issuer_key", "label", "source"])
     replace_table(con, "events", ev)
 
     # Trades
-    raw = etl.load_trades_files()
+    raw = etl.load_trades_files(manual)
     dq.append(quality.check_duplicates(raw))
     dq.append(quality.check_missing(raw))
     tr = raw.dropna(subset=["cusip", "trade_date", "price", "yield", "par_amount", "trade_type"])
