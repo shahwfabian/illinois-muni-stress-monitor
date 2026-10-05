@@ -4,9 +4,10 @@
 
 Python 3.11+ · pandas · numpy · scipy · SQLite · Streamlit · pytest. All data is public; findings are for educational purposes only, not investment advice.
 
-## Status (be aware)
-* Live and verified: Treasury par curve ETL (cross-checked to FRED), SQLite schema, data-quality checks, first-principles analytics engine (22 tests, validation notebook), stress-score engine, Streamlit app and static dashboard.
-* **Not loaded:** muni trades, bond CUSIPs and pension figures. EMMA prohibits automated access (HTTP 403 observed), and I did not invent identifiers. Follow [DATA_SOURCES.md](DATA_SOURCES.md) to supply them; until then muni panels show empty states. See [FINDINGS.md](FINDINGS.md).
+## Status
+* **Real data loaded:** 96 CUSIPs with coupons, maturities and reoffering yields parsed from issuer Official Statements (State of Illinois GO, CPS), Treasury par curve (cross-checked to FRED), FY2024 pension funded ratios (Public Plans Data).
+* **Honest limits:** spreads are primary-market (new issue), not secondary trades, because EMMA blocks automated access (drop CSVs into `data/manual/` and rerun). City of Chicago GO bonds are not loaded (no retrievable Official Statement). See [FINDINGS.md](FINDINGS.md), [DATA_SOURCES.md](DATA_SOURCES.md).
+* 27 tests, GitHub Actions CI, validation notebook. Resume wording: [RESUME.md](RESUME.md).
 
 ## Run
 ```bash
@@ -21,4 +22,4 @@ Set `PYTHONPATH=src` (the Makefile does).
 ## Layout
 `src/muni_monitor/` analytics, etl, quality, stress, treasury, pipeline · `app/` Streamlit · `web/` static dashboard (Vercel) · `notebooks/validation.ipynb` · [SCHEMA.md](SCHEMA.md) · [METHODOLOGY.md](METHODOLOGY.md)
 
-Live static dashboard: see the repository's Vercel deployment.
+Live dashboard: https://muni-stress-monitor.vercel.app
